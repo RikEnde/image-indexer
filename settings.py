@@ -1,3 +1,3 @@
-connect_string = "mongodb://10.0.0.1"
+connect_string = "mongodb://localhost"
 database = "pictures"
 collection = "images"
