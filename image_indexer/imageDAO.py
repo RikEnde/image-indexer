@@ -8,7 +8,7 @@ class ImageDAO(object):
     Wraps inserts and queries to the images collection
     As well as some aggregations
     """
-    def __init__(self, connection_string='mongodb://10.0.0.1', database='pictures', collection='images', upsert=False):
+    def __init__(self, connection_string='mongodb://localhost', database='pictures', collection='images', upsert=False):
         connection = pymongo.MongoClient(connection_string)
         self.db = connection[database]
         self.images = self.db[collection]
