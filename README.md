@@ -16,6 +16,7 @@ Known issues
 ============
 - Not very useful
 - Leaky abstractions
+- Breaks on soft links to directories
 
 TODO
 ====
