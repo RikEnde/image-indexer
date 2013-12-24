@@ -51,13 +51,15 @@ class ImageIndexer(object):
         """
         Read image file and combine file stat and exif info into document and persist
         """
-        if not imghdr.what(path):
+        file_type = imghdr.what(path) 
+        if not file_type:
             return
 
         data = {
             'exif': self.get_exif(path),
             'filename': name,
             'path': path,
+            'type': file_type, 
             'indexed': datetime.today(),
             'atime': datetime.fromtimestamp(stat[ST_ATIME]),
             'ctime': datetime.fromtimestamp(stat[ST_CTIME]),

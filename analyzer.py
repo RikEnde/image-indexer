@@ -3,35 +3,62 @@
 from image_indexer.imageDAO import ImageDAO
 from settings import *
 
+class Analyzer(object):
+    """
+    Container for several aggregation queries on the image file exif collection
+    """
 
-def find_duplicates(dao):
-    """
-    Group by hash. The result contains image file hashes that occur more than once
-    """
-    document = dao.aggregate([
-        {'$group': {'_id': '$hash', 'count': {'$sum': 1}}},
-        {'$match': {'count': {'$gt': 1}}},
-        {'$project': {'hash': '$_id', '_id': 0, 'count': 1}},
-        {'$sort': {'count': 1}}
-    ])
-    for i, doc in enumerate(document['result']):
-        print i, doc['hash'], doc['count'], dao.find_by_hash(doc['hash'])
+    def __init__(self, dao):
+        self.dao = dao
 
-def count_cameras(dao):
-    """
-    Group by Exif.Image.Model and count
-    """
-    #> db.images.aggregate({$group:{_id:"$exif.ExifImageModel", count:{$sum : 1}}})
-    document = dao.aggregate([
-        {'$group': {'_id': '$exif.ExifImageModel', 'count': {'$sum': 1}}}, 
-        {'$project': {'camera': '$_id', 'count': True, '_id': False}}, 
-        {'$sort': {'count': 1}}
-    ])
-    for doc in document['result']:
-        print doc['count'], doc['camera']
+    def find_duplicates(self):
+        """
+        Group by hash. The result contains image file hashes that occur more than once
+        """
+        document = self.dao.aggregate([
+            {'$group': {'_id': '$hash', 'count': {'$sum': 1}}},
+            {'$match': {'count': {'$gt': 1}}},
+            {'$project': {'hash': '$_id', '_id': 0, 'count': 1}},
+            {'$sort': {'count': 1}}
+        ])
+        for i, doc in enumerate(document['result']):
+            print "%d %s %s" % (i, doc['count'], ', '.join(dao.find_by_hash(doc['hash'])))
+			
+    def count_cameras(self):
+        """
+        Group by Exif.Image.Model and count
+        """
+        document = self.dao.aggregate([
+            {'$group': {'_id': '$exif.ExifImageModel', 'count': {'$sum': 1}}}, 
+            {'$project': {'camera': '$_id', 'count': True, '_id': False}}, 
+            {'$sort': {'count': 1}}
+        ])
+        for doc in document['result']:
+            print "%-25s: %s pictures" % (doc['camera'], doc['count'])
+
+    def count_file_extension(self):
+        """
+        Group by file extension
+        """
+        document = self.dao.aggregate([
+            {'$group': {'_id': '$type', 'count': {'$sum': 1}, 'sum': {'$sum': '$size'}}}, 
+            {'$project': {'file_type': '$_id', 'count': True, 'sum': True, '_id': False}}, 
+            {'$sort': {'count': 1}}
+        ])
+        for doc in document['result']:
+            print "%-4s: %7s files, using: %11s bytes" % (doc['file_type'], doc['count'], doc['sum'])
 
 
 if __name__ == '__main__':
-    image_dao = ImageDAO(connection_string=connect_string, database=database, collection=collection)
-    find_duplicates(image_dao)
-    count_cameras(image_dao)
+    dao = ImageDAO(connection_string=connect_string, database=database, collection=collection)
+    analyzer = Analyzer(dao)
+
+    print "\nFinding files with identical copies"
+    analyzer.find_duplicates()
+
+    print "\nCounting the number of pictures per camera model"
+    analyzer.count_cameras()
+
+    print "\nCounting the number of pictures and approximate disk usage per file type"
+    analyzer.count_file_extension()
+
