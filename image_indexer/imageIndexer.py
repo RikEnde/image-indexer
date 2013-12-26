@@ -1,100 +1,53 @@
 #!/usr/bin/env python
 
 import string
-import pyexiv2
-import os
 import imghdr
-import hashlib
-
-from PIL import Image
-from pyexiv2.utils import NotifyingList
 from fractions import Fraction
 from decimal import Decimal
 from datetime import datetime, date
-from stat import *
+
+import pyexiv2
+from pyexiv2.utils import NotifyingList
+
+from image_indexer.fileIndexer import FileIndexer
 
 
-class ImageIndexer(object):
+class ImageIndexer(FileIndexer):
     """
+    Subclass of FileIndexer that handles image files
     Find given image file, extract file stat and exif info, and persist it as a document
     """
-    def __init__(self, path, dao, verbose=False, debug=False, hashing=False):
-        self.dao = dao
-        self.path = path
-        self.verbose = verbose
-        self.debug = debug
-        self.hasing = hashing
 
-    def index(self):
+    def get_file_type(self, path):
         """
-        Index any image files found under directory tree with root self.path
+        Make an attempt at identifying image type. Failing that, try extension, failing that, fail successfully
         """
-        self.traverse(self.path, self.parse_file)
+        return imghdr.what(path)
 
-    def traverse(self, directory, callback):
+    def make_data(self, name, path, stat):
         """
-        Start walking directory tree with root self.path and indexing any image files found
+        Get generic part of file metadata and add exif info for
         """
-        try:
-            for name in os.listdir(directory):
-                pathname = os.path.join(directory, name)
-                stat = os.lstat(pathname)
-
-                if S_ISDIR(stat[ST_MODE]):
-                    self.traverse(pathname, callback)
-                else:
-                    callback(name, pathname, stat)
-        except OSError as e:
-            print 'File not found or access denied: ', directory, e
-
-    def parse_file(self, name, path, stat):
-        """
-        Read image file and combine file stat and exif info into document and persist
-        """
-        file_type = imghdr.what(path) 
-        if not file_type:
-            return
-
-        data = {
-            'exif': self.get_exif(path),
-            'filename': name,
-            'path': path,
-            'type': file_type, 
-            'indexed': datetime.today(),
-            'atime': datetime.fromtimestamp(stat[ST_ATIME]),
-            'ctime': datetime.fromtimestamp(stat[ST_CTIME]),
-            'mtime': datetime.fromtimestamp(stat[ST_MTIME]),
-            'size': stat[ST_SIZE]
-        }
-
-        if self.hasing:
-            try:
-                data['hash'] = ImageIndexer.compute_hash(path)
-            except IOError as e:
-                print "Can't compute hash", e, path
-
-        if self.dao.add_image(data) and self.verbose:
-            print "%s indexed." % path
-
-    @staticmethod
-    def compute_hash(path):
-        """
-        This needs to be fast, not secure. The chance that files causing a collision are also
-        valid image files can probably be ignored.
-        """
-        return hashlib.md5(Image.open(path).tostring()).hexdigest()
+        data = FileIndexer.make_data(self, name, path, stat)
+        # Return none if the file isn't identified as an image
+        if data:
+            data['exif'] = self.get_exif(path)
+            return data
+        else:
+            return None
 
     def get_exif(self, path):
         """
         Extract exif info from file and preprocess it
         The preprocessing is necessary because pymongo can't convert some types to mongo's json
         """
-        exif = {}
+        exif = None
 
         metadata = pyexiv2.ImageMetadata(path)
         try:
             metadata.read()
 
+            exif = {}
             for key in metadata.exif_keys:
                 value = metadata[key].value
                 if type(value) == Fraction or type(value) == Decimal:

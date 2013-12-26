@@ -3,6 +3,7 @@
 from image_indexer.imageDAO import ImageDAO
 from settings import *
 
+
 class Analyzer(object):
     """
     Container for several aggregation queries on the image file exif collection
@@ -23,14 +24,14 @@ class Analyzer(object):
         ])
         for i, doc in enumerate(document['result']):
             print "%d %s %s" % (i, doc['count'], ', '.join(dao.find_by_hash(doc['hash'])))
-			
+
     def count_cameras(self):
         """
         Group by Exif.Image.Model and count
         """
         document = self.dao.aggregate([
-            {'$group': {'_id': '$exif.ExifImageModel', 'count': {'$sum': 1}}}, 
-            {'$project': {'camera': '$_id', 'count': True, '_id': False}}, 
+            {'$group': {'_id': '$exif.ExifImageModel', 'count': {'$sum': 1}}},
+            {'$project': {'camera': '$_id', 'count': True, '_id': False}},
             {'$sort': {'count': 1}}
         ])
         for doc in document['result']:
@@ -41,8 +42,8 @@ class Analyzer(object):
         Group by file extension
         """
         document = self.dao.aggregate([
-            {'$group': {'_id': '$type', 'count': {'$sum': 1}, 'sum': {'$sum': '$size'}}}, 
-            {'$project': {'file_type': '$_id', 'count': True, 'sum': True, '_id': False}}, 
+            {'$group': {'_id': '$type', 'count': {'$sum': 1}, 'sum': {'$sum': '$size'}}},
+            {'$project': {'file_type': '$_id', 'count': True, 'sum': True, '_id': False}},
             {'$sort': {'count': 1}}
         ])
         for doc in document['result']:
