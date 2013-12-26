@@ -20,7 +20,8 @@ class ImageIndexer(FileIndexer):
 
     def get_file_type(self, path):
         """
-        Make an attempt at identifying image type. Failing that, try extension, failing that, fail successfully
+        Make an attempt at identifying image type. If the file is not identified as an image file, 
+        return None, which causes the file not to be indexed
         """
         return imghdr.what(path)
 
