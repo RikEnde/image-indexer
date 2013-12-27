@@ -21,7 +21,7 @@ class ImageIndexer(FileIndexer):
     Find given image file, extract file stat and exif info, and persist it as a document
     """
 
-    def get_file_type(self, path):
+    def get_file_type(self, name, path):
         """
         Make an attempt at identifying image type. If the file is not identified as an image file,
         return None, which causes the file not to be indexed

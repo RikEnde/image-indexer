@@ -1,9 +1,10 @@
-from abc import abstractmethod
 import os
 import hashlib
+import magic
+
 from datetime import datetime
 from stat import *
-
+from abc import abstractmethod
 from PIL import Image
 
 
@@ -18,6 +19,7 @@ class FileIndexer(object):
         self.verbose = verbose
         self.debug = debug
         self.hasing = hashing
+        self.magic = magic.Magic()
 
     def index(self):
         """
@@ -70,7 +72,8 @@ class FileIndexer(object):
             'ctime': datetime.fromtimestamp(stat[ST_CTIME]),
             'mtime': datetime.fromtimestamp(stat[ST_MTIME]),
             'size': stat[ST_SIZE],
-            'type': file_type
+            'type': file_type, 
+            'magic': self.magic.from_file(path)
         }
 
         if self.hasing:
