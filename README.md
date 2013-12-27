@@ -8,6 +8,7 @@ Requirements
 ============
 - pymongo
 - pyexiv2
+- python-magic
 
 Usage
 =====
