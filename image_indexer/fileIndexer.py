@@ -41,12 +41,12 @@ class FileIndexer(object):
         except OSError as e:
             print 'File not found or access denied: ', directory, e
 
-    def get_file_type(self, path):
+    def get_file_type(self, name, path):
         """
         Try to derive the file type from the filename extension
         This should be a last resort
         """
-        chunks = path.split('.')
+        chunks = name.split('.')
         if len(chunks) > 1:
             return chunks[-1]
         else:
@@ -58,7 +58,7 @@ class FileIndexer(object):
         If the file type isn't recognized, return None. This gives subclasses a way to skip
         indexing the file
         """
-        file_type = self.get_file_type(path)
+        file_type = self.get_file_type(name, path)
         if not file_type:
             return None
 
