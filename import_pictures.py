@@ -13,6 +13,7 @@ Usage:
 
 import sys
 import getopt
+from image_indexer.fileIndexer import FileIndexer
 from settings import collection, connect_string, database
 
 from image_indexer.imageIndexer import ImageIndexer

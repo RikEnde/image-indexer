@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+from abc import abstractmethod
+import hashlib
 
 import string
 import imghdr
 from fractions import Fraction
 from decimal import Decimal
 from datetime import datetime, date
+import Image
 
 import pyexiv2
 from pyexiv2.utils import NotifyingList
@@ -20,7 +23,7 @@ class ImageIndexer(FileIndexer):
 
     def get_file_type(self, path):
         """
-        Make an attempt at identifying image type. If the file is not identified as an image file, 
+        Make an attempt at identifying image type. If the file is not identified as an image file,
         return None, which causes the file not to be indexed
         """
         return imghdr.what(path)
@@ -67,4 +70,11 @@ class ImageIndexer(FileIndexer):
             print "Error while reading exif info", e, path
 
         return exif    
+
+    @abstractmethod
+    def get_bytes(self, path):
+        """
+        First read the entire image as a file
+        """
+        return Image.open(path).tostring()
 

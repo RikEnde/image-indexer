@@ -7,6 +7,7 @@ Generate a document containing exif and file stat info of image files and persis
 Usage
 =====
     image_indexer.py --path=/root [-v | --verbose=true] [-u | --upsert=true] [-d | --debug=true] [-h | --hashing=true]
+        --path=/path    The top directory to be traversed while indexing
         -v, --verbose   if true, print to stdout what file the indexer is currently working on
         -u, --upsert    if true, update files that have already been indexed. If false, skip.
         -d, --debug     print extremely verbose debugging info to stdout
@@ -16,7 +17,6 @@ Known issues
 ============
 - Not very useful
 - Leaky abstractions
-- Breaks on soft links to directories
 
 TODO
 ====
