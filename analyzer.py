@@ -49,6 +49,18 @@ class Analyzer(object):
         for doc in document['result']:
             print "%-4s: %7s files, using: %11s bytes" % (doc['file_type'], doc['count'], doc['sum'])
 
+    def count_file_magic(self):
+        """
+        Group by lib magic identification
+        """
+        document = self.dao.aggregate([
+            {'$group': {'_id': '$magic', 'count': {'$sum': 1}, 'sum': {'$sum': '$size'}}},
+            {'$project': {'magic': '$_id', 'count': True, 'sum': True, '_id': False}},
+            {'$sort': {'count': 1}}
+        ])
+        for doc in document['result']:
+            print "%7s files, using %11s bytes of type: %s" % (doc['count'], doc['sum'], doc['magic'])
+
 
 if __name__ == '__main__':
     dao = ImageDAO(connection_string=connect_string, database=database, collection=collection)
@@ -62,4 +74,7 @@ if __name__ == '__main__':
 
     print "\nCounting the number of pictures and approximate disk usage per file type"
     analyzer.count_file_extension()
+
+    print "\nCounting the number of pictures and approximate disk usage per libmagic identification"
+    analyzer.count_file_magic()
 
