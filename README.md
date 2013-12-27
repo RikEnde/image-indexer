@@ -4,6 +4,11 @@ image-indexer
 Trying out pymongo. The exif info of holiday snapshots is a nice source of large amounts of unstructured data.
 Generate a document containing exif and file stat info of image files and persist this document. 
 
+Requirements
+============
+- pymongo
+- pyexiv2
+
 Usage
 =====
     image_indexer.py --path=/root [-v | --verbose=true] [-u | --upsert=true] [-d | --debug=true] [-h | --hashing=true]
