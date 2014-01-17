@@ -7,7 +7,7 @@ Generate a document containing exif and file stat info of image files and persis
 Requirements
 ============
 - pymongo
-- pyexiv2
+- PIL or Pillow
 - python-magic
 
 Usage
@@ -22,7 +22,6 @@ Usage
 Known issues
 ============
 - Not very useful
-- Leaky abstractions
 
 TODO
 ====
