@@ -78,7 +78,6 @@ class FileIndexer(object):
         if self.hasing:
             try:
                 data['hash'] = self.compute_hash(path)
-                print data['hash']
             except IOError as e:
                 print "Can't compute hash", e, path
         return data
