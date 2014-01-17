@@ -31,7 +31,9 @@ class ImageIndexer(FileIndexer):
         data = FileIndexer.make_data(self, name, path, stat)
         # Return none if the file isn't identified as an image
         if data:
-            data['exif'] = self.get_exif(path)
+            exif = self.get_exif(path)
+            if exif:
+                data['exif'] = exif
             return data
         else:
             return None

@@ -30,7 +30,7 @@ class Analyzer(object):
         Group by Exif.Image.Model and count
         """
         document = self.dao.aggregate([
-            {'$group': {'_id': '$exif.ExifImageModel', 'count': {'$sum': 1}}},
+            {'$group': {'_id': '$exif.Model', 'count': {'$sum': 1}}},
             {'$project': {'camera': '$_id', 'count': True, '_id': False}},
             {'$sort': {'count': 1}}
         ])
