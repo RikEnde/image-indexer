@@ -8,10 +8,11 @@ class ImageDAO(object):
     Wraps inserts and queries to the images collection
     As well as some aggregations
     """
+
     def __init__(self, connection_string='mongodb://localhost', database='pictures', collection='images', upsert=False):
         connection = pymongo.MongoClient(connection_string)
-        self.db = connection[database]
-        self.db = self.db[collection]
+        self.database = connection[database]
+        self.db = self.database[collection]
         self.upsert = upsert
         self.db.create_index([('path', 1)], unique=True)
         self.db.create_index([('hash', 1)], unique=False)
@@ -57,7 +58,10 @@ class ImageDAO(object):
             raise
         except bson.errors.InvalidDocument as e:
             print "Can't convert your datatype", e, data['path']
+            print data, data.keys(), data['exif'].keys()
             raise
-
+        except bson.errors.InvalidStringData as e:
+            print "Invalid string data", e, data['path']
+            raise
         return True
 

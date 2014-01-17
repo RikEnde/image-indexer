@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 from abc import abstractmethod
-import hashlib
 
 import string
 import imghdr
 from fractions import Fraction
 from decimal import Decimal
 from datetime import datetime, date
-import Image
-
-import pyexiv2
-from pyexiv2.utils import NotifyingList
+from PIL import Image, ExifTags
 
 from image_indexer.fileIndexer import FileIndexer
 
@@ -45,31 +41,34 @@ class ImageIndexer(FileIndexer):
         Extract exif info from file and preprocess it
         The preprocessing is necessary because pymongo can't convert some types to mongo's json
         """
-        exif = None
+        def get_gps(gps_tag):
+            gps = {}
+            for key in exif['GPSInfo'].keys():
+                decoded = ExifTags.GPSTAGS.get(key)
+                gps[decoded] = gps_tag[key]
+            return gps    
 
-        metadata = pyexiv2.ImageMetadata(path)
+        def sanitize(value):
+            if type(value) == str:
+                try:
+                    value.decode('utf-8')
+                except UnicodeDecodeError:
+                    return filter(lambda x: x in string.printable, value)
+            else:    
+                return value
+
         try:
-            metadata.read()
+            img = Image.open(path)
+            if 'exif' in img.info.keys():
+                exif = {ExifTags.TAGS[k]: sanitize(v) for k, v in img._getexif().items() if k in ExifTags.TAGS}
+                if 'GPSInfo' in exif.keys():
+                    exif['GPSInfo'] = get_gps(exif['GPSInfo'])
+                return exif
+        except IOError as e:
+            if self.debug:
+                print "Error opening file %s as image" % path
 
-            exif = {}
-            for key in metadata.exif_keys:
-                value = metadata[key].value
-                if type(value) == Fraction or type(value) == Decimal:
-                    value = float(value)
-                elif type(value) == str:
-                    value = filter(lambda x: x in string.printable, value)
-                elif type(value) == date:
-                    value = datetime.combine(value, datetime.min.time())
-                elif type(value) == NotifyingList:
-                    value = map(float, value)
-
-                if self.debug:
-                    print key, value, type(value)
-                exif[key.replace('.', '')] = value
-        except Exception as e:
-            print "Error while reading exif info", e, path
-
-        return exif    
+        return None
 
     @abstractmethod
     def get_bytes(self, path):

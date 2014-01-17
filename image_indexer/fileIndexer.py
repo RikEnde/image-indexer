@@ -1,11 +1,10 @@
 import os
 import hashlib
-import magic
-
 from datetime import datetime
 from stat import *
 from abc import abstractmethod
-from PIL import Image
+
+import magic
 
 
 class FileIndexer(object):
@@ -72,8 +71,8 @@ class FileIndexer(object):
             'ctime': datetime.fromtimestamp(stat[ST_CTIME]),
             'mtime': datetime.fromtimestamp(stat[ST_MTIME]),
             'size': stat[ST_SIZE],
-            'type': file_type, 
-            'magic': self.magic.from_file(path)
+            'type': file_type,
+            'magic': self.get_magic(path)
         }
 
         if self.hasing:
@@ -82,6 +81,14 @@ class FileIndexer(object):
             except IOError as e:
                 print "Can't compute hash", e, path
         return data
+
+    def get_magic(self, path):
+        try:
+            return self.magic.from_file(path)
+        except Exception as e:
+            if self.debug:
+                print e
+            return None
 
     def process_file(self, name, path, stat):
         """
