@@ -3,9 +3,6 @@ from abc import abstractmethod
 
 import string
 import imghdr
-from fractions import Fraction
-from decimal import Decimal
-from datetime import datetime, date
 from PIL import Image, ExifTags
 
 from image_indexer.fileIndexer import FileIndexer
@@ -45,7 +42,7 @@ class ImageIndexer(FileIndexer):
         """
         def get_gps(gps_tag):
             gps = {}
-            for key in exif['GPSInfo'].keys():
+            for key in gps_tag.keys():
                 decoded = ExifTags.GPSTAGS.get(key)
                 gps[decoded] = gps_tag[key]
             return gps    
