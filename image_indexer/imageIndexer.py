@@ -29,7 +29,7 @@ class ImageIndexer(FileIndexer):
         # Return none if the file isn't identified as an image
         if data:
             exif = self.get_exif(path)
-            if exif:
+            if False and exif:
                 data['exif'] = exif
             return data
         else:
@@ -47,7 +47,7 @@ class ImageIndexer(FileIndexer):
                 gps[decoded] = gps_tag[key]
             return gps    
 
-        def sanitize(value):
+        def sanitize(key, value):
             if type(value) == str:
                 try:
                     value.decode('utf-8')
@@ -59,10 +59,10 @@ class ImageIndexer(FileIndexer):
         try:
             img = Image.open(path)
             if 'exif' in img.info.keys():
-                exif = {ExifTags.TAGS[k]: sanitize(v) for k, v in img._getexif().items() if k in ExifTags.TAGS}
-                if 'GPSInfo' in exif.keys():
-                    exif['GPSInfo'] = get_gps(exif['GPSInfo'])
-                return exif
+                return {
+                    ExifTags.TAGS[k]: get_gps(v) if ExifTags.TAGS[k] == 'GPSInfo' else sanitize(k,v) 
+                    for k, v in img._getexif().items() if k in ExifTags.TAGS
+                }
         except IOError as e:
             if self.debug:
                 print "Error opening file %s as image" % path
